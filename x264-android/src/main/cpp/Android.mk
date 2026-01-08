@@ -9,9 +9,10 @@ include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := x264a
-LOCAL_SRC_FILES := libx264_jni.cpp
+LOCAL_SRC_FILES := libx264_jni.cpp stdio_compat.c
 LOCAL_CFLAGS    :=
-LOCAL_LDLIBS    := -llog
+LOCAL_LDLIBS    := -llog -lc
+LOCAL_LDFLAGS   += -Wl,-z,max-page-size=16384
 LOCAL_C_INCLUDES := $(LOCAL_C_INCLUDES) $(MY_PREBUILT)/include
 LOCAL_STATIC_LIBRARIES := libx264
 LOCAL_DISABLE_FORMAT_STRING_CHECKS := true
