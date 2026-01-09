@@ -55,11 +55,17 @@ then
     export CXX=${TOOLCHAIN}/bin/${COMPILER}${ANDROID_VERSION}-clang++ # c++ compiler path
 fi
 
+CROSS_PREFIX=${TOOLCHAIN}/bin/${COMPILER_PREFIX}
+if [ ! -x "${CROSS_PREFIX}strings" ]; then
+    # modern NDKs ship only generic llvm-* binutils
+    CROSS_PREFIX=${TOOLCHAIN}/bin/llvm-
+fi
+
 pushd libx264
 ./configure --prefix=$PREFIX \
         --host=$HOST \
         --sysroot=${TOOLCHAIN}/sysroot \
-        --cross-prefix=${TOOLCHAIN}/bin/${COMPILER_PREFIX} \
+        --cross-prefix=${CROSS_PREFIX} \
         --extra-cflags="$OPTIMIZE_CFLAGS" \
         --extra-ldflags="-nostdlib" \
         --enable-pic \
@@ -106,4 +112,3 @@ ARCH=x86
 OPTIMIZE_CFLAGS=
 PREFIX=`pwd`/prebuilt/x86
 build_one
-

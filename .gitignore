@@ -7,3 +7,5 @@
 /build
 /captures
 .externalNativeBuild
+x264-android/src/main/cpp/libs/
+x264-android/src/main/cpp/obj/

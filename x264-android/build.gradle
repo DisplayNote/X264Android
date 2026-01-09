@@ -1,7 +1,15 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
+
+group = "com.displaynote.x264lib"
+version = "1.0.1"
+
+def repositoryKey = version.endsWith('-SNAPSHOT') ? 'libs-snapshot-local' : 'libs-release-local'
 
 android {
     compileSdkVersion 30
+    ndkVersion "26.3.11579264"
 
     defaultConfig {
         minSdkVersion 15
@@ -24,7 +32,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             externalNativeBuild {
                 ndkBuild {
-                    arguments "LOCAL_LDFLAGS:=-Wl,-s "
+                    arguments "LOCAL_LDFLAGS+=-Wl,-s"
                 }
             }
         }
@@ -38,4 +46,49 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact "$buildDir/outputs/aar/x264-android-release.aar"
+            artifactId "x264lib"
+        }
+    }
+}
+
+def artifactoryUrl = findProperty("displaynoteDeployerArtifactoryUrl") ?: ""
+def artifactoryUsername = findProperty("displaynoteDeployerArtifactoryUsername") ?: ""
+def artifactoryPassword = findProperty("displaynoteDeployerArtifactoryPassword") ?: ""
+
+configurations {
+    mavenJava
+}
+
+artifactory {
+    contextUrl = artifactoryUrl
+    publish {
+        repository {
+            repoKey = repositoryKey
+            username = artifactoryUsername
+            password = artifactoryPassword
+        }
+        defaults {
+            publications('mavenJava')
+        }
+    }
+}
+
+resolve {
+    contextUrl = artifactoryUrl
+    repository {
+        repoKey = repositoryKey
+        username = artifactoryUsername
+        password = artifactoryPassword
+        maven = true
+    }
+}
+
+tasks.named("artifactoryPublish").configure {
+    dependsOn("assembleRelease")
 }
