@@ -43,32 +43,63 @@ if (encodedFrame.err == 0) {
 
 ## Build instructions ##
 
-* Download the [Android NDK][]:
+### 1. Prerequisites
+
+* Install the [Android NDK][] (tested with `26.3.11579264`).
+* Install JDK 17 and Android SDK (compileSdk 30) and set `JAVA_HOME` accordingly:
+  ```
+  export JAVA_HOME=$(/usr/libexec/java_home -v 17)   # macOS example
+  ```
+* Install the Android Gradle plugin dependencies via `./gradlew`.
 
 [Android NDK]: https://developer.android.com/tools/sdk/ndk/index.html
 
-* Set the following environment variables:
+### 2. Configure the native toolchain
+
+Set the following environment variables before building `libx264`:
 ```
-ANDROID_NDK_ROOT="<path to Android NDK>"
-ANDROID_NDK_PLATFORM="<platform to build to>"
-ANDROID_NDK_HOST="<your-build-host>"
+export ANDROID_NDK_ROOT="<path-to-ndk>"
+export ANDROID_NDK_PLATFORM=android-21
+export ANDROID_NDK_HOST=darwin-x86_64   # or linux-x86_64 on Linux
 ```
 
-** Example:
-```
-ANDROID_NDK_ROOT=/home/forlayo/android-ndk-r21e
-ANDROID_NDK_PLATFORM=android-21
-ANDROID_NDK_HOST=linux-x86_64
-```
+### 3. Fetch and build `libx264`
 
-* Fetch and build libx264.
-
+From `x264-android/src/main/cpp` clone the upstream encoder and run the helper script:
 ```
-cd "<repository checkout dir>/x264-android/src/main/cpp" && \
-git clone http://git.videolan.org/git/x264.git libx264 && \
-git checkout ae03d92b52bb7581df2e75d571989cb1ecd19cbd && \
+cd x264-android/src/main/cpp
+git clone http://git.videolan.org/git/x264.git libx264
+pushd libx264 && git checkout ae03d92b52bb7581df2e75d571989cb1ecd19cbd && popd
 ./build_x264.sh
 ```
-You can use other commit of libx264, but its tested on provided one; which is the most actual at the momment of writting this.
 
-* Open project in Android Studio to build the JNI native libraries.
+This produces static archives under `prebuilt/<ABI>/lib/libx264.a` and the matching headers in `prebuilt/<ABI>/include`.
+
+### 4. Build `libx264a.so` (JNI shared library)
+
+Use `ndk-build` to link the JNI wrapper (`libx264_jni.cpp`) against the prebuilt `libx264.a` for all supported ABIs:
+```
+cd x264-android/src/main/cpp
+$ANDROID_NDK_ROOT/ndk-build NDK_PROJECT_PATH=. \
+    APP_BUILD_SCRIPT=Android.mk \
+    NDK_APPLICATION_MK=Application.mk
+```
+
+The resulting shared libraries are written to `x264-android/src/main/cpp/libs/<ABI>/libx264a.so`. Gradle/Android Studio also rebuild these automatically during the next step, so this command is optional if you plan to use `./gradlew` immediately.
+
+### 5. Assemble the Android library (AAR)
+
+Return to the repository root and run:
+```
+./gradlew :x264-android:assembleRelease
+```
+
+Gradle invokes `externalNativeBuild` (`ndk-build`) to regenerate `libx264a.so`, bundles the Java sources, and produces the final `x264-android-release.aar` under `x264-android/build/outputs/aar/`. This AAR already contains the JNI binaries for `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64`.
+
+### 6. (Optional) Publish the AAR
+
+If you need to consume the library via Maven coordinates (`com.displaynote.x264lib:x264lib:1.0.0`), configure your credentials in `~/.gradle/gradle.properties` and run:
+```
+./gradlew :x264-android:artifactoryPublish
+```
+This uploads the generated AAR to the configured Artifactory repository.
