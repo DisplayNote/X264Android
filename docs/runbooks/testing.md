@@ -41,9 +41,11 @@ coverage, verify changes by driving the real API end-to-end:
 
 1. Build the AAR (`docs/runbooks/local-setup.md`).
 2. In a consuming app (or a throwaway instrumented harness), construct
-   `X264Params` with realistic values (see the defaults in
-   `X264Params.java`: 1280x720, 500 bitrate units, 24 fps, gop 48,
-   `"baseline"` profile, `"ultrafast"` preset).
+   `X264Params` with realistic values: 1280x720, 24 fps, gop 48,
+   `"baseline"` profile, `"ultrafast"` preset. Do **not** use
+   `X264Params.java`'s default `bitrate = 500` as-is — the JNI layer
+   divides `bitrate` by 1000 to get x264's kbps (`rc.i_bitrate`), so 500
+   yields 0 kbps. Set a real bps value (e.g. `2_000_000` for ~2000 kbps).
 3. Call `X264Encoder.initEncoder(params)` and check
    `X264InitResult.err == 0` and that `sps`/`pps` are non-null/non-empty.
 4. Feed one or more frames of the color format you changed/added through
