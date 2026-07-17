@@ -4,6 +4,10 @@
 
 x264 encoder to being using through jni in Android.
 
+> For AI coding agents (or a deeper architectural overview): see
+> [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) and the `docs/`
+> folder.
+
 ## Using ##
 
 * Create `X264Encoder` and `X264Params`
@@ -46,7 +50,7 @@ if (encodedFrame.err == 0) {
 ### 1. Prerequisites
 
 * Install the [Android NDK][] (tested with `26.3.11579264`).
-* Install JDK 17 and Android SDK (compileSdk 30) and set `JAVA_HOME` accordingly:
+* Install JDK 17 and Android SDK (compileSdk 36) and set `JAVA_HOME` accordingly:
   ```
   export JAVA_HOME=$(/usr/libexec/java_home -v 17)   # macOS example
   ```
@@ -98,7 +102,7 @@ Gradle invokes `externalNativeBuild` (`ndk-build`) to regenerate `libx264a.so`, 
 
 ### 6. (Optional) Publish the AAR
 
-If you need to consume the library via Maven coordinates (`com.displaynote.x264lib:x264lib:1.0.0`), configure your credentials in `~/.gradle/gradle.properties` and run:
+If you need to consume the library via Maven coordinates (`com.displaynote.x264lib:x264lib:1.0.1`), configure your credentials in `~/.gradle/gradle.properties` and run:
 ```
 ./gradlew :x264-android:artifactoryPublish
 ```
