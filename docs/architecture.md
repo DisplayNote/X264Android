@@ -10,7 +10,7 @@ of x264 or writing JNI glue itself.
 ```mermaid
 flowchart LR
     App[Consuming Android app] -->|Maven dependency| AAR[x264-android AAR]
-    AAR -->|clone + cross-compile at build time, not runtime| Upstream[VideoLAN x264\nupstream git, pinned commit]
+    AAR -->|links prebuilt static lib, cloned + cross-compiled via a manual pre-step| Upstream[VideoLAN x264\nupstream git, pinned commit]
 ```
 
 There is no backend, no network calls, and no persistence — this is a
