@@ -2,7 +2,7 @@
 
 ## Description ##
 
-x264 encoder to being using through jni in Android.
+x264 encoder for use through JNI in Android.
 
 > For AI coding agents (or a deeper architectural overview): see
 > [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) and the `docs/`
