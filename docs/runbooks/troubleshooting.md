@@ -42,7 +42,8 @@ need a new color space, with the correct plane count/stride math for it.
 
 ## AAR builds but is missing an ABI
 
-Check three places agree: `x264-android/build.gradle` (`ndk.abiFilters`),
-`Application.mk` (`APP_ABI`), and that `build_x264.sh` has a
-corresponding `build_one` block that actually populated
-`prebuilt/<ABI>/lib/libx264.a` for that ABI.
+Check three places agree: `x264-android/build.gradle`
+(`defaultConfig { ndk { abiFilters ... } }`), `Application.mk`
+(`APP_ABI`), and that `build_x264.sh` has a corresponding `build_one`
+block that actually populated `prebuilt/<ABI>/lib/libx264.a` for that
+ABI.
