@@ -5,7 +5,8 @@
 
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "x264_jni", __VA_ARGS__))
 
-// Surfaced to Java as raw ints on X264InitResult/X264EncodeResult.err.
+// Surfaced to Java as raw ints on the `err` field of both
+// X264InitResult and X264EncodeResult.
 // TODO: evaluate promoting these to named constants in the Java layer.
 #define X264A_OK 0
 #define X264A_ERR_APPLY_PROFILE -2
