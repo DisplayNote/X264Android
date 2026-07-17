@@ -97,9 +97,11 @@ per-ABI by `build_x264.sh`, never itself modified).
   `LOCAL_DISABLE_FATAL_LINKER_WARNINGS` to `true` — this is intentional,
   to suppress warnings originating in the vendored `libx264.a`, not a bug
   to fix.
-- No `TODO`/`FIXME` markers exist in the source; treat any workaround
-  comment (e.g. in `build_x264.sh`, `stdio_compat.c`) as load-bearing —
-  see Gotchas below before touching them.
+- Aside from the intentional `TODO` in `libx264_jni.cpp` about promoting
+  error codes to named constants, no other `TODO`/`FIXME` markers exist
+  in the source; treat any workaround comment (e.g. in `build_x264.sh`,
+  `stdio_compat.c`) as load-bearing — see Gotchas below before touching
+  them.
 
 ## Patterns to follow / anti-patterns to avoid
 

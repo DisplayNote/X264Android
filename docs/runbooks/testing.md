@@ -15,8 +15,9 @@ than a bespoke setup:
   `x264-android/src/main/cpp/` that can be exercised without a JVM (e.g.
   the plane/stride logic currently inline in
   `libx264_jni.cpp#encodeFrame`, if extracted into a testable function).
-  See the `cpp-testing` conventions for structure and sanitizer/coverage
-  expectations.
+  Follow DisplayNote's standard GoogleTest/CTest conventions for
+  structure, sanitizers, and coverage — there is no separate written
+  spec for this in the current repo.
 - **JVM unit tests** (`x264-android/src/test/`) — JUnit, for the Java
   data classes (`X264Params`, `X264InitResult`, `X264EncodeResult`) and
   any pure-Java logic that doesn't require a device/native library.
