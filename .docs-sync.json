@@ -1,0 +1,11 @@
+{
+  "_comment": "Per-repo manifest for roadmap 2.30. The docs-sync agent maintains the `modules` list; docs_freshness.py reads it to compute coverage + freshness. Each module maps one doc file to the code path(s) it documents. X264Android is a single-module Gradle/NDK Android library (docs/ root).",
+  "docs_root": "docs",
+  "coverage_target": 0.80,
+  "freshness_max_lag_days": 30,
+  "min_doc_bytes": 400,
+  "ignore_code_globs": ["**/*.md", "**/*.gradle", "**/*.mk", "**/*.pro", "**/gradle.properties"],
+  "modules": [
+    { "name": "x264-android", "doc": "docs/modules/x264-android.md", "code_paths": ["x264-android/src/main/java", "x264-android/src/main/cpp"] }
+  ]
+}

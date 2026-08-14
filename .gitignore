@@ -9,3 +9,7 @@
 .externalNativeBuild
 x264-android/src/main/cpp/libs/
 x264-android/src/main/cpp/obj/
+docs-freshness.json
+docs-agent.log
+docs-agent-prompt.txt
+docs-scope.txt
