@@ -192,6 +192,7 @@ jobs:
           fi
 
       - name: Run docs-maintenance agent
+        id: agent
         if: >-
           steps.scope.outputs.have_scope == 'true' &&
           steps.openpr.outputs.clear == 'true' &&
@@ -210,10 +211,14 @@ jobs:
         run: bash tools/docs-sync/run_docs_agent.sh
 
       - name: Open documentation PR
+        # Gated on the agent step actually succeeding: it is continue-on-error, so
+        # without this a failed agent run still reaches this step, which would open
+        # a PR from whatever partial edits it left staged (or none at all).
         if: >-
           steps.scope.outputs.have_scope == 'true' &&
           steps.openpr.outputs.clear == 'true' &&
-          steps.auth.outputs.ready == 'true'
+          steps.auth.outputs.ready == 'true' &&
+          steps.agent.outcome == 'success'
         # Non-fatal: transient PR create/label errors (rate limit, API flake)
         # shouldn't turn the nightly schedule red.
         continue-on-error: true
