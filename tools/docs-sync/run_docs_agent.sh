@@ -85,16 +85,17 @@ case "$ENGINE" in
       exit 2
     fi
     command -v copilot >/dev/null || { echo "ERROR: copilot CLI not installed (npm i -g @github/copilot)" >&2; exit 2; }
-    # --allow-tool auto-approves the agent's file writes and git/python shell
-    # commands (reads need no approval); --no-ask-user makes it non-interactive.
+    # --allow-tool auto-approves the agent's file writes and git shell commands
+    # (reads need no approval); --no-ask-user makes it non-interactive.
+    # No interpreter is allow-listed: no step in this pack needs the agent to run
+    # python, and this step's environment holds COPILOT_PAT (ANTHROPIC_API_KEY on
+    # the claude path) while the whole transcript is written to docs-agent.log.
     # Docs-only is enforced again at staging.
     MODEL_ARG=(); [ -n "${MODEL:-}" ] && MODEL_ARG=(--model "$MODEL")
     copilot -p "$PROMPT" \
       "${MODEL_ARG[@]}" \
       --allow-tool='write' \
       --allow-tool='shell(git:*)' \
-      --allow-tool='shell(python:*)' \
-      --allow-tool='shell(python3:*)' \
       --no-ask-user \
       2>&1 | tee docs-agent.log
     ;;
@@ -109,7 +110,7 @@ case "$ENGINE" in
       --model "${MODEL:-claude-sonnet-4-6}" \
       --max-turns "$MAX_TURNS" \
       --permission-mode acceptEdits \
-      --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git*),Bash(python*)" \
+      --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git*)" \
       2>&1 | tee docs-agent.log
     ;;
   *)

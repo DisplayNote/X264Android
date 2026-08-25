@@ -129,8 +129,8 @@ pack is identical — the engine is the only thing that changes.
   the last documented commit, and none at all on a quiet day or while a docs PR
   is open. *(Claude engine is metered; guarded by `--max-turns 60` and the sonnet
   model.)*
-- **Docs-only.** The agent's tool allow-list (`write`, `shell(git:*)`,
-  `shell(python:*)`) and the staging restriction to
+- **Docs-only.** The agent's tool allow-list (`write`, `shell(git:*)` — no
+  interpreter is allow-listed) and the staging restriction to
   `AGENTS.md CLAUDE.md doc Docs .docs-sync.json` mean it cannot land
   production-code changes.
 - **Always reviewed.** Commits land on a `chore/docs-*` branch behind a PR;
