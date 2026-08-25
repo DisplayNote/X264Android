@@ -109,7 +109,7 @@ pack is identical — the engine is the only thing that changes.
    Set `docs_root` per repo (`doc` for Montage, `Docs` for Launcher). The agent
    maintains the `modules` list from then on.
 4. **Branch protection (recommended).** Require a human review on the PR and add
-   a CODEOWNERS rule on the docs root (`doc/**` in this repo) so doc changes
+   a CODEOWNERS rule on the docs root (`docs/**` in this repo) so doc changes
    always get a set of eyes.
 5. **Pin the Copilot CLI (recommended).** Both workflows install
    `@github/copilot@${{ vars.COPILOT_CLI_VERSION || 'latest' }}`. Set the repo
@@ -165,8 +165,15 @@ Each workflow uploads a `docs-freshness-*.json` artifact
 ```bash
 export ENGINE=copilot COPILOT_GITHUB_TOKEN=<pat>   # or: ENGINE=claude ANTHROPIC_API_KEY=sk-ant-...
 # Same scope the nightly computes: code changed since the last documented commit.
-ANCHOR=$(git log -1 --format=%B "$(git log -1 --format=%H --grep='^Docs-sync-anchor:')" \
-  | sed -n 's/^Docs-sync-anchor:[[:space:]]*//p' | tail -1)
+# Guard the first-run case: with no `Docs-sync-anchor:` commit in history the
+# inner git log yields nothing and `git log ""` errors out, so the HEAD~20
+# fallback below is never reached.
+DOC_COMMIT=$(git log -1 --format=%H --grep='^Docs-sync-anchor:' || true)
+ANCHOR=""
+if [ -n "$DOC_COMMIT" ]; then
+  ANCHOR=$(git log -1 --format=%B "$DOC_COMMIT" \
+    | sed -n 's/^Docs-sync-anchor:[[:space:]]*//p' | tail -1)
+fi
 git diff --name-only "${ANCHOR:-HEAD~20}" HEAD \
   | grep -Ev '^(Docs/|doc/|docs/|AGENTS\.md|CLAUDE\.md|\.docs-sync\.json)' > docs-scope.txt
 bash tools/docs-sync/run_docs_agent.sh   # edits + stages docs
