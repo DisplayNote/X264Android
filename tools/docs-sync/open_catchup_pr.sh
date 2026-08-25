@@ -77,9 +77,18 @@ fi
 # Don't pile up duplicate documentation PRs: if a matching one is still open
 # (e.g. last week's sweep or last night's sync wasn't merged yet), skip this run.
 # The callers gate on this too; this is the defense-in-depth copy.
-OPEN_DOCS_PRS="$(gh pr list --state open --json headRefName \
-  --jq "[.[] | select(.headRefName | startswith(\"$DUP_PREFIX\"))] | length" 2>/dev/null || echo 0)"
-if [ "${OPEN_DOCS_PRS:-0}" != "0" ]; then
+# Fail closed: `|| echo 0` would turn a gh/API error into "none open" and let a
+# duplicate docs PR through. If the answer can't be determined, stop.
+if ! OPEN_DOCS_PRS="$(gh pr list --state open --json headRefName \
+  --jq "[.[] | select(.headRefName | startswith(\"$DUP_PREFIX\"))] | length")"; then
+  echo "ERROR: could not list open pull requests; refusing to open a possibly duplicate docs PR." >&2
+  exit 1
+fi
+if ! printf '%s' "$OPEN_DOCS_PRS" | grep -qE '^[0-9]+$'; then
+  echo "ERROR: unexpected open-PR count; refusing to continue." >&2
+  exit 1
+fi
+if [ "$OPEN_DOCS_PRS" != "0" ]; then
   echo "An open documentation PR ($DUP_PREFIX*) already exists; skipping to avoid duplicates."
   exit 0
 fi
