@@ -71,12 +71,14 @@ def last_commit_epoch(paths, cwd, ignore_globs):
     """Newest commit-timestamp (unix epoch) touching any of `paths`.
 
     Returns 0 if no commit ever touched them (path missing / untracked)."""
-    newest = 0
-    for p in paths:
-        # %ct = committer date, unix timestamp. -1 = most recent only.
-        ts = run_git(["log", "-1", "--format=%ct", "--", p], cwd)
-        if ts.isdigit():
-            newest = max(newest, int(ts))
+    # One `git log` for all paths instead of one per path: `-1` over a multi-path
+    # pathspec already returns the most recent commit touching ANY of them, which
+    # is exactly the max() the per-path loop computed.
+    # %ct = committer date, unix timestamp. -1 = most recent only.
+    if not paths:
+        return 0
+    ts = run_git(["log", "-1", "--format=%ct", "--"] + list(paths), cwd)
+    newest = int(ts) if ts.isdigit() else 0
     # Ignore-globs are advisory: they exist so a future, finer-grained
     # implementation can exclude doc/build noise from "code" timestamps.
     # The current path-level granularity does not need them, but we keep the
