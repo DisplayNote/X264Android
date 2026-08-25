@@ -18,8 +18,8 @@ JSON report, and chooses an exit code based on --mode:
 
   --mode report  (default) : always exit 0  (observe-only; use while ramping up)
   --mode gate              : exit 1 if coverage < target, any module is stale, OR
-                             a module's declared code paths no longer exist
-                             (manifest drift)
+                             ANY of a module's declared code paths no longer
+                             exists (manifest drift)
 
 Usage:
   python tools/docs-sync/docs_freshness.py \
@@ -96,8 +96,13 @@ def doc_is_present(doc_path, repo_root, min_bytes):
     return size >= min_bytes, size
 
 
-def code_exists(code_paths, repo_root):
-    return any(os.path.exists(os.path.join(repo_root, p)) for p in code_paths)
+def missing_code_paths(code_paths, repo_root):
+    """Declared code paths that no longer resolve on disk.
+
+    EVERY declared path must exist. `any()` let a module keep passing while the
+    rest of its manifest entry rotted — precisely the drift this is meant to
+    catch. Returns the offending paths so the report can name them."""
+    return [p for p in code_paths if not os.path.exists(os.path.join(repo_root, p))]
 
 
 def human_date(epoch):
@@ -163,9 +168,10 @@ def main():
         doc_path = mod["doc"]
         code_paths = mod.get("code_paths", [])
 
-        if not code_exists(code_paths, repo_root):
-            # The code this module pointed at is gone — manifest drift.
-            missing_code.append(name)
+        gone = missing_code_paths(code_paths, repo_root)
+        if gone:
+            # At least one declared code path no longer resolves — manifest drift.
+            missing_code.append(f"{name} ({', '.join(gone)})")
 
         has_doc, doc_size = doc_is_present(doc_path, repo_root, min_doc_bytes)
         if has_doc:
