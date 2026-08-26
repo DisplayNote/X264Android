@@ -96,12 +96,20 @@ case "$ENGINE" in
     # the claude path) while the whole transcript is written to docs-agent.log.
     # Docs-only is enforced again at staging.
     MODEL_ARG=(); [ -n "${MODEL:-}" ] && MODEL_ARG=(--model "$MODEL")
+    set +e
     copilot -p "$PROMPT" \
       "${MODEL_ARG[@]}" \
       --allow-tool='write' \
       --allow-tool='shell(git:*)' \
       --no-ask-user \
-      2>&1 | tee docs-agent.log
+      > docs-agent.log 2>&1
+    AGENT_RC=$?
+    set -e
+    if [ "$AGENT_RC" -ne 0 ]; then
+      echo "ERROR: copilot agent exited $AGENT_RC; last 50 lines of docs-agent.log:" >&2
+      tail -n 50 docs-agent.log >&2 || true
+      exit "$AGENT_RC"
+    fi
     ;;
   claude)
     if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
@@ -110,12 +118,20 @@ case "$ENGINE" in
     fi
     command -v claude >/dev/null || { echo "ERROR: claude CLI not installed (npm i -g @anthropic-ai/claude-code)" >&2; exit 2; }
     export DISABLE_AUTOUPDATER=1
+    set +e
     claude -p "$PROMPT" \
       --model "${MODEL:-claude-sonnet-4-6}" \
       --max-turns "$MAX_TURNS" \
       --permission-mode acceptEdits \
       --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git*)" \
-      2>&1 | tee docs-agent.log
+      > docs-agent.log 2>&1
+    AGENT_RC=$?
+    set -e
+    if [ "$AGENT_RC" -ne 0 ]; then
+      echo "ERROR: claude agent exited $AGENT_RC; last 50 lines of docs-agent.log:" >&2
+      tail -n 50 docs-agent.log >&2 || true
+      exit "$AGENT_RC"
+    fi
     ;;
   *)
     echo "ERROR: unknown ENGINE '$ENGINE' (expected copilot|claude)" >&2
