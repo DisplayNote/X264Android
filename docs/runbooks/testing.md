@@ -28,11 +28,13 @@ than a bespoke setup:
 
 **Priority: this is the #1 technical-debt item for this repo**, ahead of
 any other tech-debt work — including standing up CI/CD to actually run
-the resulting suite (there is currently no CI/CD in this repo at all, see
-`docs/runbooks/release.md`; that gap is now in scope as part of this same
-initiative, not a separate follow-on). No source sets exist yet, so treat
-the "Manual verification" steps below as the interim process until the
-instrumented suite (and the CI that runs it) lands.
+the resulting suite (there is currently no build or test CI in this
+repo; a documentation-sync CI exists in `.github/workflows/` but is
+docs-only — see `docs/runbooks/release.md`; the code CI gap is in scope
+as part of this same initiative, not a separate follow-on). No source
+sets exist yet, so treat the "Manual verification" steps below as the
+interim process until the instrumented suite (and the CI that runs it)
+lands.
 
 ## Manual verification (current practice)
 

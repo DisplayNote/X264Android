@@ -1,8 +1,11 @@
 # Release
 
-There is no CI/CD in this repo (no `.github/workflows/`, no
-`azure-pipelines.yml`, no equivalent) — releases are a manual, local
-process today. Standing up CI (alongside the automated test suite) is
+There is no build or release CI in this repo (no pipeline that runs
+`assembleRelease`, no automated test runner, no `azure-pipelines.yml` or
+equivalent) — releases are a manual, local process today. A
+documentation-sync CI does exist (`.github/workflows/docs-sync.yml` and
+`docs-catchup.yml`), but it is docs-only and does not gate releases.
+Standing up build and test CI (alongside the automated test suite) is
 the **#1 technical-debt priority** for this repo — see
 `docs/runbooks/testing.md` — so this manual process is expected to
 change.
