@@ -4,6 +4,8 @@ Claude Code-specific instructions. Full detail lives in `AGENTS.md` — read
 that first for the repository map, "where to add X" table, and gotchas.
 This file is the dense, imperative summary.
 
+@AGENTS.md
+
 ## What this repo is
 
 Android library (AAR) wrapping upstream x264 via JNI. Single Gradle

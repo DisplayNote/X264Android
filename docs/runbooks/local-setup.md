@@ -6,6 +6,9 @@ either changes.
 
 ## 1. Prerequisites
 
+Run `/secret-scan-setup` once per clone (or `--global` once per machine for new clones) — commits containing secrets are blocked locally and in CI.
+`/secret-scan-setup` is a Claude Code command from DisplayNote's `displaynote-engineering` plugin (install it with `/plugin install displaynote-engineering`); it is not part of this repository.
+
 - Android NDK `26.3.11579264` (the version pinned in
   `x264-android/build.gradle`).
 - JDK 17.
