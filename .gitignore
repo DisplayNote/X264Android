@@ -13,3 +13,6 @@ docs-freshness.json
 docs-agent.log
 docs-agent-prompt.txt
 docs-scope.txt
+
+# dn_logscrub placeholder maps hold the ORIGINAL values — never commit them
+*.dnmap

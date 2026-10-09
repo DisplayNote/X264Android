@@ -19,6 +19,16 @@ app — this repo produces a single library artifact,
 > fail depending on the exact AGP/Gradle/SDK combination installed — see
 > the Gotchas section below. Not resolved as part of this docs pass.
 
+## Security
+
+- NEVER suggest hardcoded credentials, API keys, or connection strings
+- NEVER generate code that logs PII or sensitive data
+- Flag any code that introduces new external dependencies
+- Prefer established authentication patterns (OAuth2, JWT) over custom implementations
+- Do not generate SQL without parameterised queries
+- Flag any configuration changes that affect network exposure or access controls
+- NEVER read raw log files or paste log content into a prompt — sanitise with `dn_logscrub` first (`/log-sanitise <file>`) and work only from the `.scrubbed` copy (AI Security Roadmap 4.7)
+
 ## Repository map
 
 ```
