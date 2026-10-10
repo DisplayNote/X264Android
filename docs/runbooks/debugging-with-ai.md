@@ -67,7 +67,8 @@ for that run.
    file of that run. Keep placeholders in PR descriptions, ticket comments and
    Slack messages; never expand them there.
 3. The `--map` file (`*.dnmap`) holds the originals for your own reverse lookup.
-   It stays on your machine; never attach it, commit it or paste from it.
+   It stays on your machine; never attach it, commit it or paste from it
+   (`*.dnmap` is gitignored as a safety net).
 4. Customer logs are **Protected** data by default (AI Governance Policy 1.3 §4.2).
    Sanitised customer logs may go to Green-List tools with a corporate account.
    Raw customer logs may go to an AI tool only with AI Lead + CEO approval

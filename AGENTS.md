@@ -38,6 +38,8 @@ X264Android/
 ├── README.md                        # human quick-start / build guide
 ├── AGENTS.md, CLAUDE.md             # this file and its Claude Code counterpart
 ├── docs/                            # architecture, module, runbook, glossary docs (this initiative)
+├── .agents/skills/, .github/skills/ # vendored `code-review` and `log-sanitise` skills (synced copies; edit upstream, not here)
+├── .github/instructions/            # review rules, incl. displaynote-vendored-skills.instructions.md
 └── x264-android/                    # the only module — Android library (AAR)
     ├── build.gradle                 # module config: compileSdk 36, ndkVersion, ABIs, publishing
     └── src/main/
