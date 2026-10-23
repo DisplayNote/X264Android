@@ -9,7 +9,10 @@ This file is the dense, imperative summary.
 ## What this repo is
 
 Android library (AAR) wrapping upstream x264 via JNI. Single Gradle
-module: `x264-android`. No sample app, no automated tests.
+module: `x264-android`. No sample app. JVM unit tests (JUnit 4) cover the
+Java classes; CI (`ci/azure-pipelines.yml`) runs them with JaCoCo coverage,
+builds the AAR and publishes it on version tags (`docs/runbooks/testing.md`).
+The JNI/native path has no automated tests.
 
 ## DO
 
@@ -25,8 +28,12 @@ module: `x264-android`. No sample app, no automated tests.
   `LOCAL_SRC_FILES`.
 - Preserve the `-Wl,-z,max-page-size=16384` linker flags in `Android.mk`
   and `Application.mk` (Android 16 KB page-size compliance).
-- Verify JNI/native changes manually on-device (no test suite exists) —
-  encode a frame and check `err == 0`.
+- Verify JNI/native changes manually on-device (no native or
+  instrumented tests exist) — encode a frame and check `err == 0`.
+- **Every Java change gets a JVM unit test** in `x264-android/src/test`
+  (JUnit 4); a new field or result constructor also gets a line in
+  `JniBindingContractTest`. Run them with
+  `./gradlew :x264-android:test -Px264.skipNativeBuild=true`.
 
 ## DON'T
 
@@ -63,6 +70,7 @@ Gradle Plugin `7.4.2` (root `build.gradle`) needs bumping to officially
 support `compileSdk 36` — see the AGP gotcha in `AGENTS.md`. The x264
 GPL/commercial licensing gap is a standing, acknowledged risk (no
 LICENSE file, none planned here) — don't "fix" it by adding one
-yourself; that's a legal decision. Adding automated tests (and the CI to
-run them) is the **#1 technical-debt priority** for this repo, ahead of
-everything else in the backlog — see `docs/runbooks/testing.md`.
+yourself; that's a legal decision. Finishing the automated tests (native
+and instrumented; the JVM tests and their CI exist) is the **#1
+technical-debt priority** for this repo, ahead of everything else in the
+backlog — see `docs/runbooks/testing.md`.

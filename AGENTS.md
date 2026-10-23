@@ -38,10 +38,13 @@ X264Android/
 ├── README.md                        # human quick-start / build guide
 ├── AGENTS.md, CLAUDE.md             # this file and its Claude Code counterpart
 ├── docs/                            # architecture, module, runbook, glossary docs (this initiative)
+├── ci/azure-pipelines.yml           # build pipeline: scans, version, JVM tests + JaCoCo, assembleRelease, publish on tags
+├── ci/build-libx264.sh              # CI pre-build: fetch pinned x264 + run build_x264.sh (README steps 2-3)
 ├── .agents/skills/, .github/skills/ # vendored `code-review` and `log-sanitise` skills (synced copies; edit upstream, not here)
 ├── .github/instructions/            # review rules, incl. displaynote-vendored-skills.instructions.md
 └── x264-android/                    # the only module — Android library (AAR)
     ├── build.gradle                 # module config: compileSdk 36, ndkVersion, ABIs, publishing
+    ├── src/test/java/com/github/bakaoh/x264/  # JVM unit tests (JUnit 4)
     └── src/main/
         ├── cpp/                     # native/JNI layer
         │   ├── Android.mk, Application.mk   # ndk-build scripts
@@ -55,12 +58,13 @@ X264Android/
 
 ## Run / build / test / lint
 
-There is no automated test suite yet (no `src/test`, no `src/androidTest`).
-Verification is currently build-success plus manual on-device smoke
-testing. Adding automated tests (native GoogleTest/CTest, JVM JUnit,
-instrumented AndroidX Test) plus the CI/CD to run them is the **#1
-technical-debt priority** for this repo — see `docs/runbooks/testing.md`
-for the plan and what verification means in the interim.
+JVM unit tests (JUnit 4, `x264-android/src/test`) cover the Java data
+classes and the names/signatures the JNI layer binds to; CI
+(`ci/azure-pipelines.yml`) runs them with JaCoCo coverage and builds the
+AAR. The JNI/native path still has no automated tests (no native
+GoogleTest/CTest, no `src/androidTest`) and is verified by manual
+on-device smoke testing; finishing that pyramid stays the **#1
+technical-debt priority** — see `docs/runbooks/testing.md`.
 
 Full step-by-step build instructions (env vars, cloning upstream x264,
 `ndk-build`, `assembleRelease`, publishing) live in `README.md` — do not
@@ -80,6 +84,17 @@ export ANDROID_NDK_HOST=linux-x86_64   # or darwin-x86_64
 cd ../../../../..
 ./gradlew :x264-android:assembleRelease
 # -> x264-android/build/outputs/aar/x264-android-release.aar
+
+# JVM unit tests: X264ParamsTest, X264InitResultTest, X264EncodeResultTest,
+#   JniBindingContractTest (full list: docs/runbooks/testing.md).
+#   -Px264.skipNativeBuild=true drops ndk-build, so no NDK/libx264 is needed;
+#   never use it to assemble or publish.
+./gradlew :x264-android:test -Px264.skipNativeBuild=true
+
+# Unit tests + JaCoCo line coverage, as CI runs them (report under
+#   x264-android/build/reports/jacoco/jacocoTestReport/)
+./gradlew :x264-android:testDebugUnitTest -Px264.skipNativeBuild=true
+./gradlew :x264-android:jacocoTestReport -x :x264-android:testDebugUnitTest -Px264.skipNativeBuild=true
 ```
 
 No lint task is configured beyond the Android Gradle plugin defaults; no
@@ -144,9 +159,10 @@ per-ABI by `build_x264.sh`, never itself modified).
 
 ## Gotchas
 
-- **No automated tests.** Any change to the JNI bridge or native params
-  mapping needs manual on-device verification (encode a frame, check
-  `err == 0` and non-null `sps`/`pps`/`data`).
+- **No automated tests for the JNI/native path.** The JVM unit tests only
+  cover the Java classes and the JNI binding names; any change to the JNI
+  bridge or native params mapping needs manual on-device verification
+  (encode a frame, check `err == 0` and non-null `sps`/`pps`/`data`).
 - **`build_x264.sh` defaults are stale/personal**: if `ANDROID_NDK_ROOT`
   is unset it falls back to `/home/forlayo/android-ndk-r21e` (a specific
   developer's local path, NDK r21e — inconsistent with the pinned NDK 26
@@ -193,6 +209,7 @@ See `docs/glossary.md`.
 | VideoLAN x264 (upstream, GPLv2+) | Source of the actual H.264 encoder, cloned and cross-compiled at build time, pinned to a specific commit | `README.md` step 3, `build_x264.sh` |
 | Android NDK `26.3.11579264` | Cross-compilation toolchain for both `libx264` and the JNI bridge | `x264-android/build.gradle` (`ndkVersion`), `README.md` |
 | Artifactory (via `com.jfrog.artifactory` plugin) | Optional Maven publishing target for the AAR | root `build.gradle`, `x264-android/build.gradle` (`artifactoryPublish` task, `displaynoteDeployerArtifactory*` properties) |
+| Build pipeline (Azure DevOps, `ci/azure-pipelines.yml`) | SecretScan + DependencyScan, version, `tests_coverage_java` (JVM tests + JaCoCo, audit mode, roadmap 2.23), `assembleRelease`, `artifactoryPublish` on tags equal to the library version | Templates from `DisplayNote/qt-conan-ci` (`android-gradle/*`) and `DisplayNote/dn-pipeline-templates`; Artifactory credentials from the `displaynoteArtifactoryCredentials` variable group |
 
 ### Licensing note
 

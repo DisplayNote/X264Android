@@ -13,10 +13,11 @@
 - Native `APP_PLATFORM := android-21` — below `minSdkVersion`, so no
   runtime mismatch, but don't lower it without re-checking
   `stdio_compat.c`'s API-level shim.
-- No automated test suite yet (no `src/test`, no `src/androidTest`) —
-  tracked as a technical-debt recovery item, see
-  `docs/runbooks/testing.md`.
-- No CI/CD (no `.github/workflows`, no equivalent).
+- JVM unit tests (JUnit 4, `src/test`) for the Java classes; no
+  native or instrumented tests yet (technical-debt recovery item, see
+  `docs/runbooks/testing.md`).
+- Build CI: `ci/azure-pipelines.yml` (Azure DevOps) — scans, JVM tests +
+  JaCoCo, `assembleRelease`, publish on version tags.
 - Optional publishing via Artifactory (`com.jfrog.artifactory` plugin).
 
 Build commands, environment variables, and the full cross-compilation

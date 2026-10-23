@@ -1,14 +1,12 @@
 # Release
 
-There is no build or release CI in this repo (no pipeline that runs
-`assembleRelease`, no automated test runner, no `azure-pipelines.yml` or
-equivalent) — releases are a manual, local process today. A
-documentation-sync CI does exist (`.github/workflows/docs-sync.yml` and
-`docs-catchup.yml`), but it is docs-only and does not gate releases.
-Standing up build and test CI (alongside the automated test suite) is
-the **#1 technical-debt priority** for this repo — see
-`docs/runbooks/testing.md` — so this manual process is expected to
-change.
+`ci/azure-pipelines.yml` (Azure DevOps) runs the JVM tests with coverage
+and `assembleRelease` on every `master` push and PR, and publishes with
+`artifactoryPublish` when a tag is pushed. The tag must equal `version` in
+`x264-android/build.gradle` (bare, like the existing `1.0.1` tag), or the
+publish stage fails before building, so a tag can never re-publish a
+different version over a released one. The manual steps below remain the
+fallback and describe what the pipeline does.
 
 ## Steps
 
@@ -30,8 +28,9 @@ change.
    This task `dependsOn("assembleRelease")` (see
    `x264-android/build.gradle`), so step 2 is technically redundant but
    useful for a pre-publish sanity check.
-4. Tag the commit in git (no existing convention in this repo's history
-   to follow — pick one, e.g. `v1.0.1`, and record it going forward).
+4. Tag the commit in git with the bare version (`git tag 1.0.1`, the
+   convention of the existing tag) and push it; the pipeline publishes
+   from the tag build.
 
 ## Before releasing
 
