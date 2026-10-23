@@ -65,9 +65,8 @@ The JNI/native path has no automated tests.
 ## Known open questions
 
 The SDK triple (`minSdk 26` / `targetSdk 35` / `compileSdk 36`) is a
-settled decision, not open. What's still unresolved: whether Android
-Gradle Plugin `7.4.2` (root `build.gradle`) needs bumping to officially
-support `compileSdk 36` — see the AGP gotcha in `AGENTS.md`. The x264
+settled decision, not open. AGP is `8.7.3`, which
+supports `compileSdk 36` (see the AGP gotcha in `AGENTS.md`). The x264
 GPL/commercial licensing gap is a standing, acknowledged risk (no
 LICENSE file, none planned here) — don't "fix" it by adding one
 yourself; that's a legal decision. Finishing the automated tests (native

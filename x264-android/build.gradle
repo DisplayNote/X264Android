@@ -9,6 +9,7 @@ version = "1.0.1"
 def repositoryKey = version.endsWith('-SNAPSHOT') ? 'libs-snapshot-local' : 'libs-release-local'
 
 android {
+    namespace 'com.github.bakaoh.x264'
     compileSdkVersion 36
     ndkVersion "26.3.11579264"
 
@@ -70,7 +71,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
         html.required = true
     }
     def generated = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*']
-    classDirectories.from = fileTree(dir: "$buildDir/intermediates/javac/debug/classes", excludes: generated)
+    classDirectories.from = fileTree(dir: "$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes", excludes: generated)
     sourceDirectories.from = files('src/main/java')
     executionData.from = fileTree(dir: buildDir, includes: ['outputs/unit_test_code_coverage/debugUnitTest/*.exec'])
 }
@@ -103,16 +104,6 @@ artifactory {
         defaults {
             publications('mavenJava')
         }
-    }
-}
-
-resolve {
-    contextUrl = artifactoryUrl
-    repository {
-        repoKey = repositoryKey
-        username = artifactoryUsername
-        password = artifactoryPassword
-        maven = true
     }
 }
 

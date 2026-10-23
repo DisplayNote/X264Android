@@ -7,17 +7,15 @@ Instructions for AI coding agents (and humans) working in this repository.
 X264Android wraps the upstream [x264](https://www.videolan.org/developers/x264.html)
 H.264 encoder in a JNI layer and packages it as an Android library (AAR),
 exposing a small Java API (`X264Encoder`, `X264Params`) for encoding raw
-YUV/NV frames to H.264 in real time. Stack: Gradle 7.5.1 / Android Gradle
-Plugin 7.4.2, `ndk-build` (no CMake), NDK `26.3.11579264`, Java sources at
+YUV/NV frames to H.264 in real time. Stack: Gradle 8.11.1 / Android Gradle
+Plugin 8.7.3 (JDK 17), `ndk-build` (no CMake), NDK `26.3.11579264`, Java sources at
 Android `compileSdk 36` (`minSdk 26`, `targetSdk 35`). There is no sample
 app — this repo produces a single library artifact,
 `com.displaynote.x264lib:x264lib`.
 
-> **Known risk**: `compileSdk 36` is paired with Android Gradle Plugin
-> `7.4.2` (root `build.gradle`), which predates official support for API
-> levels this high. This may only be a build-time warning, or it may hard
-> fail depending on the exact AGP/Gradle/SDK combination installed — see
-> the Gotchas section below. Not resolved as part of this docs pass.
+> AGP is `8.7.3`: AGP `7.4.2`'s aapt2 could not read the android-36 platform
+> that `compileSdk 36` needs, and the release build failed in CI. See the
+> Gotchas section below.
 
 ## Security
 
@@ -34,7 +32,7 @@ app — this repo produces a single library artifact,
 ```
 X264Android/
 ├── build.gradle, settings.gradle   # root Gradle config (single module: x264-android)
-├── gradle/, gradlew*                # Gradle wrapper (7.5.1)
+├── gradle/, gradlew*                # Gradle wrapper (8.11.1)
 ├── README.md                        # human quick-start / build guide
 ├── AGENTS.md, CLAUDE.md             # this file and its Claude Code counterpart
 ├── docs/                            # architecture, module, runbook, glossary docs (this initiative)
@@ -186,13 +184,13 @@ per-ABI by `build_x264.sh`, never itself modified).
   `compileSdkVersion 36` were set together in the same change; the SDK
   triple (`26`/`35`/`36`) is now a settled decision, not an open
   question.
-- **AGP `7.4.2` vs. `compileSdk 36`**: root `build.gradle` still pins
-  Android Gradle Plugin `7.4.2`, which predates official support for API
-  36. This may surface only as a build warning, or as a hard failure,
-  depending on the installed Gradle/AGP/SDK combination — verify locally
-  before relying on a from-scratch build. Bumping AGP (and likely the
-  Gradle wrapper alongside it) was out of scope for this change; flagged,
-  not fixed.
+- **AGP and `compileSdk 36`**: with AGP `7.4.2`, aapt2 failed on the
+  android-36 platform (`failed to load include path .../android-36/android.jar`),
+  so the release build could not run in CI. AGP is now `8.7.3` with Gradle
+  `8.11.1` and the JFrog plugin `5.2.5` (its `resolve {}` block is gone; the
+  module never resolved from Artifactory). AGP 8 needs JDK 17 and takes the
+  namespace from `x264-android/build.gradle`; the manifest no longer has a
+  `package` attribute.
 - **No LICENSE file, and none is planned as part of this docs pass** —
   see External systems / Licensing below. Do not assume the AAR is
   freely redistributable; this is a standing, acknowledged risk, not an
