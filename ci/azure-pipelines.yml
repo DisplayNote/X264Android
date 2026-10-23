@@ -46,10 +46,13 @@ resources:
       ref: refs/tags/v1.1.2
 
 variables:
-  # displaynoteDeployerArtifactoryUrl / displaynoteDeployerArtifactoryUsername /
-  # displaynoteDeployerArtifactoryPassword for the artifactoryPublish task in
-  # x264-android/build.gradle. Only the publish stage uses them.
-  - group: displaynoteArtifactoryCredentials
+  # MAVEN_ARTIFACTORY_USER / MAVEN_ARTIFACTORY_PASS: the DisplayNote
+  # Artifactory credentials the Montage Android pipelines use. Only the
+  # publish stage maps them, into the displaynoteDeployerArtifactory* Gradle
+  # properties x264-android/build.gradle reads.
+  - group: montage-client-environment-variables
+  - name: artifactoryBaseUrl
+    value: 'https://maven-montage.westus.cloudapp.azure.com/artifactory/'
 
 stages:
     # Both scan stages declare dependsOn: [], so they start together.
@@ -108,6 +111,6 @@ stages:
           fi
           bash ci/build-libx264.sh
         env:
-          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUrl: $(displaynoteDeployerArtifactoryUrl)
-          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUsername: $(displaynoteDeployerArtifactoryUsername)
-          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryPassword: $(displaynoteDeployerArtifactoryPassword)
+          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUrl: $(artifactoryBaseUrl)
+          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUsername: $(MAVEN_ARTIFACTORY_USER)
+          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryPassword: $(MAVEN_ARTIFACTORY_PASS)
