@@ -30,13 +30,12 @@ pr:
 
 resources:
   repositories:
-    # 2.5.0 has no Gradle stages yet; they come with the next qt-conan-ci
-    # release. Pin the tag once it is cut.
+    # 2.6.0 adds the Gradle stages (tests_coverage_java, build, publish).
     - repository: ci
       type: github
       endpoint: "DisplayNote through PAT."
       name: DisplayNote/qt-conan-ci
-      ref: refs/heads/feature/gradle-coverage
+      ref: refs/tags/2.6.0
     # AI Security Roadmap 4.1 - shared secret-scanning (gitleaks) and
     # dependency-scanning (OSV-Scanner + Grype) templates.
     - repository: dn-templates
