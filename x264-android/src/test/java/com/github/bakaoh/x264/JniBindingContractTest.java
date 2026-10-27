@@ -14,8 +14,8 @@ import org.junit.Test;
  * libx264_jni.cpp finds these fields and constructors by name and JNI
  * signature at run time. A rename or type change compiles fine and only
  * fails on a device, so the names and types are pinned here.
- * X264Encoder itself is not touched: its static block loads the native
- * library.
+ * X264Encoder is looked up without being initialised: its static block
+ * loads the native library.
  */
 public class JniBindingContractTest {
 
@@ -28,6 +28,17 @@ public class JniBindingContractTest {
         assertPublicField(X264Params.class, "gop", int.class);
         assertPublicField(X264Params.class, "preset", String.class);
         assertPublicField(X264Params.class, "profile", String.class);
+    }
+
+    // "J" in set_ctx and get_ctx.
+    @Test
+    public void encoderDeclaresTheCtxFieldTheNativeContextLivesIn() throws Exception {
+        Class<?> encoder = Class.forName("com.github.bakaoh.x264.X264Encoder", false,
+                JniBindingContractTest.class.getClassLoader());
+        Field ctx = encoder.getDeclaredField("ctx");
+
+        assertEquals("X264Encoder.ctx", long.class, ctx.getType());
+        assertFalse(Modifier.isStatic(ctx.getModifiers()));
     }
 
     // "(I[B[B)V" in initEncoder.
