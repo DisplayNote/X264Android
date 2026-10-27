@@ -1,7 +1,8 @@
 # Release
 
 `ci/azure-pipelines.yml` (Azure DevOps) runs the JVM tests with coverage
-and `assembleRelease` on every `master` push and PR, and publishes with
+and `assembleRelease` on every `master` push and on every non-draft PR
+except those that only change `docs/` or `README.md`, and publishes with
 `artifactoryPublish` when a tag is pushed. The tag must equal `version` in
 `x264-android/build.gradle` (bare, like the existing `1.0.1` tag), or the
 publish stage fails before building, so a tag can never re-publish a
