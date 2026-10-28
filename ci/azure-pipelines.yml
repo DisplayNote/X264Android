@@ -36,8 +36,7 @@ resources:
       endpoint: "DisplayNote through PAT."
       name: DisplayNote/qt-conan-ci
       # 2.8.0 publishes only on a release tag in the repository's format.
-      # TODO: pin refs/tags/2.8.0 once qt-conan-ci#23 is merged and tagged.
-      ref: refs/heads/feature/publish-release-check
+      ref: refs/tags/2.8.0
     # AI Security Roadmap 4.1 - shared secret-scanning (gitleaks) and
     # dependency-scanning (OSV-Scanner + Grype) templates.
     - repository: dn-templates
