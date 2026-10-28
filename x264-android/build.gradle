@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'jacoco'
 
 group = "com.displaynote.x264lib"
 version = "1.0.1"
@@ -8,6 +9,7 @@ version = "1.0.1"
 def repositoryKey = version.endsWith('-SNAPSHOT') ? 'libs-snapshot-local' : 'libs-release-local'
 
 android {
+    namespace 'com.github.bakaoh.x264'
     compileSdkVersion 36
     ndkVersion "26.3.11579264"
 
@@ -27,6 +29,10 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // JaCoCo data for the JVM unit tests (roadmap 2.23, docs/runbooks/testing.md).
+            enableUnitTestCoverage true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -37,15 +43,37 @@ android {
             }
         }
     }
-    externalNativeBuild {
-        ndkBuild {
-            path "src/main/cpp/Android.mk"
+    // -Px264.skipNativeBuild=true leaves ndk-build out of the build, so the JVM
+    // unit tests (and their CI stage) need neither the NDK nor a prebuilt
+    // libx264. Never use it to assemble or publish: the AAR would ship without
+    // libx264a.so.
+    if (!findProperty('x264.skipNativeBuild')?.toString()?.toBoolean()) {
+        externalNativeBuild {
+            ndkBuild {
+                path "src/main/cpp/Android.mk"
+            }
         }
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// Line coverage of the JVM unit tests as JaCoCo XML, read by the pipeline's
+// tests_coverage_java stage. Generated code is not counted. X264Encoder stays in:
+// it only runs with the native library, so the JVM lane reports it as uncovered.
+tasks.register('jacocoTestReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    def generated = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*']
+    classDirectories.from = fileTree(dir: "$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes", excludes: generated)
+    sourceDirectories.from = files('src/main/java')
+    executionData.from = fileTree(dir: buildDir, includes: ['outputs/unit_test_code_coverage/debugUnitTest/*.exec'])
 }
 
 publishing {
@@ -76,16 +104,6 @@ artifactory {
         defaults {
             publications('mavenJava')
         }
-    }
-}
-
-resolve {
-    contextUrl = artifactoryUrl
-    repository {
-        repoKey = repositoryKey
-        username = artifactoryUsername
-        password = artifactoryPassword
-        maven = true
     }
 }
 

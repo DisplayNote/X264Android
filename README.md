@@ -107,3 +107,24 @@ If you need to consume the library via Maven coordinates (`com.displaynote.x264l
 ./gradlew :x264-android:artifactoryPublish
 ```
 This uploads the generated AAR to the configured Artifactory repository.
+
+## Testing
+
+JVM unit tests run with `./gradlew :x264-android:test -Px264.skipNativeBuild=true` (no NDK
+needed); CI runs them with JaCoCo coverage. See [`docs/runbooks/testing.md`](docs/runbooks/testing.md).
+
+## Coverage scope
+
+The `tests_coverage_java` stage reports JaCoCo line coverage of `x264-android` (roadmap 2.23,
+target 75%).
+
+- **Measured:** the Java classes compiled for the debug build type
+  (`x264-android/src/main/java`, four classes), exercised by the JVM unit tests. The denominator is
+  tiny (22 lines), so the percentage moves a lot with any change and says little on its own.
+- **Excluded:** generated `R`, `BuildConfig` and manifest classes.
+- **Not executed in the current lane:** `X264Encoder` (its static block loads `libx264a.so`, so it
+  can't run in the JVM; it stays in the denominator as uncovered) and all native code
+  (`libx264_jni.cpp`, `stdio_compat.c`, upstream `libx264`), which JaCoCo doesn't measure. There
+  are no instrumented or native tests yet.
+
+The exclusions are reviewed quarterly.

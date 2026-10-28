@@ -78,8 +78,10 @@ oversight) — see the `TODO` comment directly above the `#define`s in
 
 ## How to test it in isolation
 
-No automated test suite exists (`src/test`, `src/androidTest` are both
-absent). In practice, verification is:
+JVM unit tests (`src/test`, run by CI with JaCoCo) cover the Java data
+classes and the JNI binding names; nothing automated exercises the native
+path (no `src/androidTest`, no native tests). In practice, verification
+of a JNI/native change is:
 
 1. `./gradlew :x264-android:assembleRelease` succeeds for all 4 ABIs.
 2. A consuming app (or a throwaway instrumented harness) calls

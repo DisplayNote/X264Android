@@ -7,17 +7,15 @@ Instructions for AI coding agents (and humans) working in this repository.
 X264Android wraps the upstream [x264](https://www.videolan.org/developers/x264.html)
 H.264 encoder in a JNI layer and packages it as an Android library (AAR),
 exposing a small Java API (`X264Encoder`, `X264Params`) for encoding raw
-YUV/NV frames to H.264 in real time. Stack: Gradle 7.5.1 / Android Gradle
-Plugin 7.4.2, `ndk-build` (no CMake), NDK `26.3.11579264`, Java sources at
+YUV/NV frames to H.264 in real time. Stack: Gradle 8.11.1 / Android Gradle
+Plugin 8.7.3 (JDK 17), `ndk-build` (no CMake), NDK `26.3.11579264`, Java sources at
 Android `compileSdk 36` (`minSdk 26`, `targetSdk 35`). There is no sample
 app — this repo produces a single library artifact,
 `com.displaynote.x264lib:x264lib`.
 
-> **Known risk**: `compileSdk 36` is paired with Android Gradle Plugin
-> `7.4.2` (root `build.gradle`), which predates official support for API
-> levels this high. This may only be a build-time warning, or it may hard
-> fail depending on the exact AGP/Gradle/SDK combination installed — see
-> the Gotchas section below. Not resolved as part of this docs pass.
+> AGP is `8.7.3`: AGP `7.4.2`'s aapt2 could not read the android-36 platform
+> that `compileSdk 36` needs, and the release build failed in CI. See the
+> Gotchas section below.
 
 ## Security
 
@@ -34,14 +32,17 @@ app — this repo produces a single library artifact,
 ```
 X264Android/
 ├── build.gradle, settings.gradle   # root Gradle config (single module: x264-android)
-├── gradle/, gradlew*                # Gradle wrapper (7.5.1)
+├── gradle/, gradlew*                # Gradle wrapper (8.11.1)
 ├── README.md                        # human quick-start / build guide
 ├── AGENTS.md, CLAUDE.md             # this file and its Claude Code counterpart
 ├── docs/                            # architecture, module, runbook, glossary docs (this initiative)
+├── ci/azure-pipelines.yml           # build pipeline: scans, version, JVM tests + JaCoCo, assembleRelease, publish on tags
+├── ci/build-libx264.sh              # CI pre-build: fetch pinned x264 + run build_x264.sh (README steps 2-3)
 ├── .agents/skills/, .github/skills/ # vendored `code-review` and `log-sanitise` skills (synced copies; edit upstream, not here)
 ├── .github/instructions/            # review rules, incl. displaynote-vendored-skills.instructions.md
 └── x264-android/                    # the only module — Android library (AAR)
     ├── build.gradle                 # module config: compileSdk 36, ndkVersion, ABIs, publishing
+    ├── src/test/java/com/github/bakaoh/x264/  # JVM unit tests (JUnit 4)
     └── src/main/
         ├── cpp/                     # native/JNI layer
         │   ├── Android.mk, Application.mk   # ndk-build scripts
@@ -55,12 +56,13 @@ X264Android/
 
 ## Run / build / test / lint
 
-There is no automated test suite yet (no `src/test`, no `src/androidTest`).
-Verification is currently build-success plus manual on-device smoke
-testing. Adding automated tests (native GoogleTest/CTest, JVM JUnit,
-instrumented AndroidX Test) plus the CI/CD to run them is the **#1
-technical-debt priority** for this repo — see `docs/runbooks/testing.md`
-for the plan and what verification means in the interim.
+JVM unit tests (JUnit 4, `x264-android/src/test`) cover the Java data
+classes and the names/signatures the JNI layer binds to; CI
+(`ci/azure-pipelines.yml`) runs them with JaCoCo coverage and builds the
+AAR. The JNI/native path still has no automated tests (no native
+GoogleTest/CTest, no `src/androidTest`) and is verified by manual
+on-device smoke testing; finishing that pyramid stays the **#1
+technical-debt priority** — see `docs/runbooks/testing.md`.
 
 Full step-by-step build instructions (env vars, cloning upstream x264,
 `ndk-build`, `assembleRelease`, publishing) live in `README.md` — do not
@@ -80,6 +82,17 @@ export ANDROID_NDK_HOST=linux-x86_64   # or darwin-x86_64
 cd ../../../../..
 ./gradlew :x264-android:assembleRelease
 # -> x264-android/build/outputs/aar/x264-android-release.aar
+
+# JVM unit tests: X264ParamsTest, X264InitResultTest, X264EncodeResultTest,
+#   JniBindingContractTest (full list: docs/runbooks/testing.md).
+#   -Px264.skipNativeBuild=true drops ndk-build, so no NDK/libx264 is needed;
+#   never use it to assemble or publish.
+./gradlew :x264-android:test -Px264.skipNativeBuild=true
+
+# Unit tests + JaCoCo line coverage, as CI runs them (report under
+#   x264-android/build/reports/jacoco/jacocoTestReport/)
+./gradlew :x264-android:testDebugUnitTest -Px264.skipNativeBuild=true
+./gradlew :x264-android:jacocoTestReport -x :x264-android:testDebugUnitTest -Px264.skipNativeBuild=true
 ```
 
 No lint task is configured beyond the Android Gradle plugin defaults; no
@@ -144,9 +157,10 @@ per-ABI by `build_x264.sh`, never itself modified).
 
 ## Gotchas
 
-- **No automated tests.** Any change to the JNI bridge or native params
-  mapping needs manual on-device verification (encode a frame, check
-  `err == 0` and non-null `sps`/`pps`/`data`).
+- **No automated tests for the JNI/native path.** The JVM unit tests only
+  cover the Java classes and the JNI binding names; any change to the JNI
+  bridge or native params mapping needs manual on-device verification
+  (encode a frame, check `err == 0` and non-null `sps`/`pps`/`data`).
 - **`build_x264.sh` defaults are stale/personal**: if `ANDROID_NDK_ROOT`
   is unset it falls back to `/home/forlayo/android-ndk-r21e` (a specific
   developer's local path, NDK r21e — inconsistent with the pinned NDK 26
@@ -170,13 +184,13 @@ per-ABI by `build_x264.sh`, never itself modified).
   `compileSdkVersion 36` were set together in the same change; the SDK
   triple (`26`/`35`/`36`) is now a settled decision, not an open
   question.
-- **AGP `7.4.2` vs. `compileSdk 36`**: root `build.gradle` still pins
-  Android Gradle Plugin `7.4.2`, which predates official support for API
-  36. This may surface only as a build warning, or as a hard failure,
-  depending on the installed Gradle/AGP/SDK combination — verify locally
-  before relying on a from-scratch build. Bumping AGP (and likely the
-  Gradle wrapper alongside it) was out of scope for this change; flagged,
-  not fixed.
+- **AGP and `compileSdk 36`**: with AGP `7.4.2`, aapt2 failed on the
+  android-36 platform (`failed to load include path .../android-36/android.jar`),
+  so the release build could not run in CI. AGP is now `8.7.3` with Gradle
+  `8.11.1` and the JFrog plugin `5.2.5` (its `resolve {}` block is gone; the
+  module never resolved from Artifactory). AGP 8 needs JDK 17 and takes the
+  namespace from `x264-android/build.gradle`; the manifest no longer has a
+  `package` attribute.
 - **No LICENSE file, and none is planned as part of this docs pass** —
   see External systems / Licensing below. Do not assume the AAR is
   freely redistributable; this is a standing, acknowledged risk, not an
@@ -193,6 +207,7 @@ See `docs/glossary.md`.
 | VideoLAN x264 (upstream, GPLv2+) | Source of the actual H.264 encoder, cloned and cross-compiled at build time, pinned to a specific commit | `README.md` step 3, `build_x264.sh` |
 | Android NDK `26.3.11579264` | Cross-compilation toolchain for both `libx264` and the JNI bridge | `x264-android/build.gradle` (`ndkVersion`), `README.md` |
 | Artifactory (via `com.jfrog.artifactory` plugin) | Optional Maven publishing target for the AAR | root `build.gradle`, `x264-android/build.gradle` (`artifactoryPublish` task, `displaynoteDeployerArtifactory*` properties) |
+| Build pipeline (Azure DevOps, `ci/azure-pipelines.yml`) | SecretScan + DependencyScan, version, `tests_coverage_java` (JVM tests + JaCoCo, audit mode, roadmap 2.23), `assembleRelease`, `artifactoryPublish` on tags equal to the library version | Templates from `DisplayNote/qt-conan-ci` (`android-gradle/*`) and `DisplayNote/dn-pipeline-templates`; Artifactory credentials (`MAVEN_ARTIFACTORY_USER`/`MAVEN_ARTIFACTORY_PASS`) from the `montage-client-environment-variables` variable group |
 
 ### Licensing note
 

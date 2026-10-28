@@ -4,9 +4,10 @@ This file is read by GitHub Copilot in both VS Code and Visual Studio.
 Full detail lives in [`AGENTS.md`](../AGENTS.md) — read that first. Below
 are the rules that hurt most when violated.
 
-- No automated tests exist in this repo. Verify JNI/native changes
-  manually on-device (see `docs/runbooks/testing.md`) — don't assume a
-  green build means the encoder still works.
+- Only the Java classes have automated (JVM) tests; the JNI/native path
+  has none. Verify JNI/native changes manually on-device (see
+  `docs/runbooks/testing.md`) — don't assume a green build means the
+  encoder still works.
 - `minSdkVersion` is `26`, a hard requirement from the Montage product,
   not an arbitrary default — don't lower it, and don't raise it without
   checking with that team first.

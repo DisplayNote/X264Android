@@ -1,0 +1,115 @@
+# X264Android build pipeline (roadmap 2.23).
+#
+# Stage order: SecretScan + DependencyScan (in parallel) -> setup (VERSION) ->
+# tests_coverage_java -> gradle_build -> gradle_publish. Every dependency is
+# explicit. gradle_publish runs on tag builds only (tags are the bare library
+# version, e.g. 1.0.1, docs/runbooks/release.md), so branch and PR runs never
+# publish.
+#
+# The build and publish stages first fetch upstream x264 at the pinned commit
+# and cross-compile libx264.a for the four ABIs (ci/build-libx264.sh): the
+# prebuilt/ and libx264/ folders are gitignored. The JVM tests need neither.
+
+trigger:
+  branches:
+    include:
+    - master
+  tags:
+    include:
+    - '*'
+
+pr:
+  branches:
+    include:
+    - '*'
+  paths:
+    exclude:
+    - docs
+    - README.md
+  drafts: false
+
+resources:
+  repositories:
+    # 2.6.0 adds the Gradle stages (tests_coverage_java, build, publish).
+    - repository: ci
+      type: github
+      endpoint: "DisplayNote through PAT."
+      name: DisplayNote/qt-conan-ci
+      ref: refs/tags/2.6.0
+    # AI Security Roadmap 4.1 - shared secret-scanning (gitleaks) and
+    # dependency-scanning (OSV-Scanner + Grype) templates.
+    - repository: dn-templates
+      type: github
+      endpoint: "DisplayNote through PAT."
+      name: DisplayNote/dn-pipeline-templates
+      ref: refs/tags/v1.1.2
+
+variables:
+  # MAVEN_ARTIFACTORY_USER / MAVEN_ARTIFACTORY_PASS: the DisplayNote
+  # Artifactory credentials the Montage Android pipelines use. Only the
+  # publish stage maps them, into the displaynoteDeployerArtifactory* Gradle
+  # properties x264-android/build.gradle reads.
+  - group: montage-client-environment-variables
+  - name: artifactoryBaseUrl
+    value: 'https://maven-montage.westus.cloudapp.azure.com/artifactory/'
+
+stages:
+    # Both scan stages declare dependsOn: [], so they start together.
+    - template: secret-scan-stage.yml@dn-templates
+      parameters:
+        failOnFindings: false      # audit mode - onboarding only; remove to make the gate blocking
+
+    - template: dependency-scan-stage.yml@dn-templates
+      parameters:
+        failOnFindings: false      # audit mode - remove to make the gate blocking
+        # No Gradle lockfile yet, so OSV-Scanner finds no packages; the
+        # build.gradle inventory covers them (same exception as AB#143382).
+        allowNoPackages: true
+
+    - template: common/setup.yml@ci
+      parameters:
+        dependsOn: [SecretScan, DependencyScan]
+        checkoutSubmodules: false
+
+    # Roadmap 2.23 - JVM unit tests with JaCoCo (docs/runbooks/testing.md).
+    # blocking: false is audit mode: failing tests and a figure below 75% are
+    # warnings; true makes them stop the build and the publish.
+    # x264.skipNativeBuild leaves ndk-build out, so this stage needs no NDK.
+    - template: android-gradle/tests-coverage.yml@ci
+      parameters:
+        enabled: true
+        blocking: false
+        modules: [':x264-android']
+        jdkVersion: '17'
+        gradleArgs: '-Px264.skipNativeBuild=true'
+
+    - template: android-gradle/build.yml@ci
+      parameters:
+        dependsOn: [setup, tests_coverage_java]
+        tasks: ':x264-android:assembleRelease'
+        jdkVersion: '17'
+        ndkVersion: '26.3.11579264'
+        preBuildScript: 'bash ci/build-libx264.sh'
+
+    - template: android-gradle/publish.yml@ci
+      parameters:
+        tagPrefix: ''
+        tasks: ':x264-android:assembleRelease :x264-android:artifactoryPublish'
+        jdkVersion: '17'
+        ndkVersion: '26.3.11579264'
+        # The tag must equal the version in x264-android/build.gradle, so a
+        # tag never re-publishes another version over a released one (Montage
+        # consumes com.displaynote.x264lib:x264lib:1.0.1).
+        preBuildScript: |
+          set -eu
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' x264-android/build.gradle)
+          tag="${BUILD_SOURCEBRANCH#refs/tags/}"
+          if [ "$tag" != "$version" ]; then
+            echo "##vso[task.logissue type=error]Tag $tag does not match version $version in x264-android/build.gradle"
+            exit 1
+          fi
+          bash ci/build-libx264.sh
+        env:
+          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUrl: $(artifactoryBaseUrl)
+          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUsername: $(MAVEN_ARTIFACTORY_USER)
+          ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryPassword: $(MAVEN_ARTIFACTORY_PASS)

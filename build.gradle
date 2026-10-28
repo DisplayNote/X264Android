@@ -1,19 +1,21 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url "https://jitpack.io" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.35.2'
+        // AGP 8: AGP 7.4's aapt2 cannot read the android-36 platform this
+        // module compiles against.
+        classpath 'com.android.tools.build:gradle:8.7.3'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.2.5'
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url "https://jitpack.io" }
     }
 }

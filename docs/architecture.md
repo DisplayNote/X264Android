@@ -104,7 +104,5 @@ re-runs `ndk-build` (step D→E→F); it does not re-fetch or rebuild
   SDK triple in `x264-android/build.gradle` is `minSdkVersion 26`
   (Montage product requirement), `targetSdkVersion 35`,
   `compileSdkVersion 36` — all comfortably above the native floor and a
-  settled decision, not open. The remaining open risk is that root
-  `build.gradle` still pins Android Gradle Plugin `7.4.2`, which predates
-  official support for `compileSdk 36` — see the AGP gotcha in
-  `AGENTS.md`.
+  settled decision, not open. AGP is `8.7.3` (Gradle `8.11.1`), which
+  supports `compileSdk 36` — see the AGP gotcha in `AGENTS.md`.
