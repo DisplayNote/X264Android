@@ -35,7 +35,7 @@ resources:
       type: github
       endpoint: "DisplayNote through PAT."
       name: DisplayNote/qt-conan-ci
-      # 2.8.0 adds releaseCheckScript to android-gradle/publish.yml.
+      # 2.8.0 publishes only on a release tag in the repository's format.
       # TODO: pin refs/tags/2.8.0 once qt-conan-ci#23 is merged and tagged.
       ref: refs/heads/feature/publish-release-check
     # AI Security Roadmap 4.1 - shared secret-scanning (gitleaks) and
@@ -95,24 +95,13 @@ stages:
 
     - template: android-gradle/publish.yml@ci
       parameters:
+        # Java-only repository: a bare <version> tag publishes, any other tag
+        # skips this stage.
         tagPrefix: ''
         tasks: ':x264-android:assembleRelease :x264-android:artifactoryPublish'
         jdkVersion: '17'
         ndkVersion: '26.3.11579264'
         preBuildScript: 'bash ci/build-libx264.sh'
-        # Publish only when the tag equals the version in
-        # x264-android/build.gradle, so a tag never re-publishes another
-        # version over a released one (Montage consumes
-        # com.displaynote.x264lib:x264lib:1.0.1). Any other tag skips the
-        # publish job with a warning instead of failing the stage.
-        releaseCheckScript: |
-          set -eu
-          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' x264-android/build.gradle)
-          tag="${BUILD_SOURCEBRANCH#refs/tags/}"
-          if [ "$tag" != "$version" ]; then
-            echo "Tag $tag does not match version $version in x264-android/build.gradle"
-            exit 1
-          fi
         env:
           ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUrl: $(artifactoryBaseUrl)
           ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUsername: $(MAVEN_ARTIFACTORY_USER)
