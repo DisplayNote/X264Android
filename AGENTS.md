@@ -207,7 +207,7 @@ See `docs/glossary.md`.
 | VideoLAN x264 (upstream, GPLv2+) | Source of the actual H.264 encoder, cloned and cross-compiled at build time, pinned to a specific commit | `README.md` step 3, `build_x264.sh` |
 | Android NDK `26.3.11579264` | Cross-compilation toolchain for both `libx264` and the JNI bridge | `x264-android/build.gradle` (`ndkVersion`), `README.md` |
 | Artifactory (via `com.jfrog.artifactory` plugin) | Optional Maven publishing target for the AAR | root `build.gradle`, `x264-android/build.gradle` (`artifactoryPublish` task, `displaynoteDeployerArtifactory*` properties) |
-| Build pipeline (Azure DevOps, `ci/azure-pipelines.yml`) | SecretScan + DependencyScan, version, `tests_coverage_java` (JVM tests + JaCoCo, audit mode, roadmap 2.23), `assembleRelease`, `artifactoryPublish` on tags equal to the library version | Templates from `DisplayNote/qt-conan-ci` (`android-gradle/*`) and `DisplayNote/dn-pipeline-templates`; Artifactory credentials (`MAVEN_ARTIFACTORY_USER`/`MAVEN_ARTIFACTORY_PASS`) from the `montage-client-environment-variables` variable group |
+| Build pipeline (Azure DevOps, `ci/azure-pipelines.yml`) | SecretScan + DependencyScan, version, `tests_coverage_java` (JVM tests + JaCoCo, audit mode, roadmap 2.23), `assembleRelease`, `artifactoryPublish` on bare `X.Y.Z` tags (any other tag skips the publish stage) | Templates from `DisplayNote/qt-conan-ci` (`android-gradle/*`) and `DisplayNote/dn-pipeline-templates`; Artifactory credentials (`MAVEN_ARTIFACTORY_USER`/`MAVEN_ARTIFACTORY_PASS`) from the `montage-client-environment-variables` variable group |
 
 ### Licensing note
 
