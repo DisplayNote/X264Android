@@ -87,7 +87,9 @@ for that run.
 
 Redacted irreversibly: private keys, JWTs, auth headers, URL credentials,
 cloud/API keys, any `password= / token= / secret= / *_key=` value, OAuth
-`code=`/`state=`/`nonce=` in URLs.
+`code=`/`state=`/`nonce=` in URLs, and the content of XMPP credential elements
+(SASL `<auth>`/`<challenge>`/`<response>`/`<success>`, `<password>`, the
+`jabber:iq:auth` `<digest>`, credential-named upload `<header>` values).
 Pseudonymised consistently: e-mails, quoted/keyed names (people, devices,
 computers), keyed ids (serial, deviceId, session, meetingId, roomPin, tenantId,
 licence…), Android `getprop` serials, Wi-Fi SSIDs, IPv4/IPv6, MACs, UUIDs, phone
@@ -98,7 +100,9 @@ high-entropy strings.
 Kept: timestamps, version numbers, stack traces, package/class/method names and
 JNI symbols, the rest of the path, file hashes and git commit ids, loopback
 addresses, and keys that only describe a secret (`token_expires_in=3600`).
-Not caught: a person's name in free text, a customer hostname without `--domain`.
+Not caught: a person's name in free text, a customer hostname without `--domain`,
+an XMPP credential element whose payload is on a different line from its opening
+tag, and XMPP stanzas in JSON logs that escape `<`, `>` or `/`.
 
 Repo-specific note: no notable log-sanitisation risk in this repo's own code.
 The only lines this library emits itself are the three fixed `LOGE` strings in
