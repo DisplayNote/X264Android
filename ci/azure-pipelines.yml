@@ -35,7 +35,8 @@ resources:
       type: github
       endpoint: "DisplayNote through PAT."
       name: DisplayNote/qt-conan-ci
-      ref: refs/tags/2.6.0
+      # 2.8.0 publishes only on a release tag in the repository's format.
+      ref: refs/tags/2.8.0
     # AI Security Roadmap 4.1 - shared secret-scanning (gitleaks) and
     # dependency-scanning (OSV-Scanner + Grype) templates.
     - repository: dn-templates
@@ -93,22 +94,13 @@ stages:
 
     - template: android-gradle/publish.yml@ci
       parameters:
+        # Java-only repository: a bare <version> tag publishes, any other tag
+        # skips this stage.
         tagPrefix: ''
         tasks: ':x264-android:assembleRelease :x264-android:artifactoryPublish'
         jdkVersion: '17'
         ndkVersion: '26.3.11579264'
-        # The tag must equal the version in x264-android/build.gradle, so a
-        # tag never re-publishes another version over a released one (Montage
-        # consumes com.displaynote.x264lib:x264lib:1.0.1).
-        preBuildScript: |
-          set -eu
-          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' x264-android/build.gradle)
-          tag="${BUILD_SOURCEBRANCH#refs/tags/}"
-          if [ "$tag" != "$version" ]; then
-            echo "##vso[task.logissue type=error]Tag $tag does not match version $version in x264-android/build.gradle"
-            exit 1
-          fi
-          bash ci/build-libx264.sh
+        preBuildScript: 'bash ci/build-libx264.sh'
         env:
           ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUrl: $(artifactoryBaseUrl)
           ORG_GRADLE_PROJECT_displaynoteDeployerArtifactoryUsername: $(MAVEN_ARTIFACTORY_USER)
