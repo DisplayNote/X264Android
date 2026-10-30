@@ -57,12 +57,9 @@ variables:
 stages:
     # Both scan stages declare dependsOn: [], so they start together.
     - template: secret-scan-stage.yml@dn-templates
-      parameters:
-        failOnFindings: false      # audit mode - onboarding only; remove to make the gate blocking
 
     - template: dependency-scan-stage.yml@dn-templates
       parameters:
-        failOnFindings: false      # audit mode - remove to make the gate blocking
         # No Gradle lockfile yet, so OSV-Scanner finds no packages; the
         # build.gradle inventory covers them (same exception as AB#143382).
         allowNoPackages: true
