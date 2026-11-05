@@ -33,7 +33,7 @@ resources:
     # 2.6.0 adds the Gradle stages (tests_coverage_java, build, publish).
     - repository: ci
       type: github
-      endpoint: "DisplayNote through PAT."
+      endpoint: "DisplayNote"
       name: DisplayNote/qt-conan-ci
       # 2.8.0 publishes only on a release tag in the repository's format.
       ref: refs/tags/2.8.0
@@ -41,7 +41,7 @@ resources:
     # dependency-scanning (OSV-Scanner + Grype) templates.
     - repository: dn-templates
       type: github
-      endpoint: "DisplayNote through PAT."
+      endpoint: "DisplayNote"
       name: DisplayNote/dn-pipeline-templates
       ref: refs/heads/main
 
