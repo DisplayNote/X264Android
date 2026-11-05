@@ -36,7 +36,8 @@ resources:
       endpoint: "DisplayNote"
       name: DisplayNote/qt-conan-ci
       # 2.8.0 publishes only on a release tag in the repository's format.
-      ref: refs/tags/2.8.0
+      # 2.8.1 keeps 2.8.0's templates; only its examples moved to the DisplayNote GitHub App connection.
+      ref: refs/tags/2.8.1
     # AI Security Roadmap 4.1 - shared secret-scanning (gitleaks) and
     # dependency-scanning (OSV-Scanner + Grype) templates.
     - repository: dn-templates
