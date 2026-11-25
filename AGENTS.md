@@ -191,6 +191,13 @@ per-ABI by `build_x264.sh`, never itself modified).
   module never resolved from Artifactory). AGP 8 needs JDK 17 and takes the
   namespace from `x264-android/build.gradle`; the manifest no longer has a
   `package` attribute.
+- **`DependencyScan` needs at least one scannable dependency.** There is
+  no Gradle lockfile, so OSV-Scanner finds no packages; since
+  dn-pipeline-templates v1.5.0 the gate counts the `build.gradle`
+  dependencies as coverage, so the stage runs without `allowNoPackages`.
+  Only three are scanned today (AGP, junit, the JFrog build-info plugin),
+  all with literal versions: if none is left, the gate fails on "nothing
+  scanned".
 - **No LICENSE file, and none is planned as part of this docs pass** —
   see External systems / Licensing below. Do not assume the AAR is
   freely redistributable; this is a standing, acknowledged risk, not an
