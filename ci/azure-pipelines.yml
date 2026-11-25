@@ -68,9 +68,8 @@ stages:
         pool:
           name: agent-pool-ubuntu2204-short-jobs-vmss
         workspaceClean: all
-        # No Gradle lockfile yet, so OSV-Scanner finds no packages; the
-        # build.gradle inventory covers them (same exception as AB#143382).
-        allowNoPackages: true
+        # No lockfile, so OSV-Scanner finds no packages; the native-deps phase scans the build.gradle
+        # dependencies, which the gate counts as coverage since dn-pipeline-templates v1.5.0 (AB#143382).
 
     - template: common/setup.yml@ci
       parameters:
